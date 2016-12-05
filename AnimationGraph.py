@@ -31,6 +31,8 @@ def complementaryFilter(Buffer):
     YANGLE = ( 0.98 * (YANGLE + ( gyroY * 0.001) ) + (0.02 * accY ) )
 
 def getIMUData():
+    ser.write(2)
+
     if(ser.inWaiting() > 0):
         dataBytes = ser.readline()
 

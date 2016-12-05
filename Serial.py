@@ -20,12 +20,14 @@ def ComplementaryFilter(Buffer):
     accX = math.atan2(int(Buffer[0]), int(Buffer[2])) * 180 / math.pi
     accY = math.atan2(int(Buffer[1]), int(Buffer[2])) * 180 / math.pi
 
-    XANGLE = ( 0.98 * (XANGLE + ( gyroX * 0.001) ) + (0.02 * accX ) )
-    YANGLE = ( 0.98 * (YANGLE + ( gyroY * 0.001) ) + (0.02 * accY ) )
+    XANGLE = ( 0.93 * (XANGLE + ( gyroX * 0.001) ) + (0.07 * accX ) )
+    YANGLE = ( 0.93 * (YANGLE + ( gyroY * 0.001) ) + (0.07 * accY ) )
 
     print("XANGLE : {0}   YANGLE : {1}".format("%0.4f" % XANGLE, "%0.4f" % YANGLE) )
 
 while(True):
+
+    ser.write(2)
 
     if(ser.inWaiting() > 0):
         dataBytes = ser.readline()

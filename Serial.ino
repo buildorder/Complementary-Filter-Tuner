@@ -31,10 +31,12 @@ void setup() {
   Serial.begin(57600);
 
   Wire.beginTransmission(MPU9250);
-  Wire.write(0x6B); 
+  Wire.write(0x6B);
   Wire.write(0);
   Wire.endTransmission(true);
 
+  while( Serial.read() == -1 );
+  
   delay(1000);
 }
 
@@ -42,7 +44,7 @@ void loop() {
 
   GetData();
 
-  for(i = 0; i < 4; i++) 
+  for(i = 0; i < 4; i++)
   {
     Serial.print(dataBuffer[i]);
     Serial.print("|");
