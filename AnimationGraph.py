@@ -1,66 +1,76 @@
-import serial
-import math
 import matplotlib.pylab as plt
 import matplotlib.animation as animation
 import numpy as np
+import serial
+import math
 
-from multiprocessing import Process
-
+# Open Serial Port
 ser = serial.Serial()
 ser.port = 'COM7'
-ser.baudrate = 57600
+ser.baudrate = 115200
 ser.open()
 
-XANGLE = 0;
-YANGLE = 0;
+# Graph Datas
+xArr = []
+yArr = []
+XANGLE = 0
+YANGLE = 0
+prev_data = -1
 
-def complementaryFilter(Buffer):
+#setup figure
+fig = plt.figure()
+x_window = fig.add_subplot(2,1,2)
+y_window = fig.add_subplot(2,1,1)
+x_window.set_ylim(-90, 90)
+y_window.set_ylim(-90, 90)
+
+x_graph, = x_window.plot([], [], color=(0,0,1))
+y_graph, = y_window.plot([], [], color=(0,0,1))
+
+def printF(Buffer, n):
     global XANGLE
     global YANGLE
 
-    # Convert Gyro Data / LSB is 131.0
     gyroX = float(Buffer[3]) / 131.0
     gyroY = float(Buffer[4]) / 131.0
 
-    # Convert Accel Data /
     accX = math.atan2(int(Buffer[0]), int(Buffer[2])) * 180 / math.pi
     accY = math.atan2(int(Buffer[1]), int(Buffer[2])) * 180 / math.pi
 
-    # ComplementaryFilter
-    XANGLE = ( 0.98 * (XANGLE + ( gyroX * 0.001) ) + (0.02 * accX ) )
-    YANGLE = ( 0.98 * (YANGLE + ( gyroY * 0.001) ) + (0.02 * accY ) )
+    XANGLE = ( 0.88 * (XANGLE + ( gyroX * 0.001) ) + (0.12 * accX ))
+    YANGLE = ( 0.88 * (YANGLE + ( gyroY * 0.001) ) + (0.12 * accY ))
 
-def getIMUData():
-    ser.write(2)
+    xArr.append(XANGLE)
+    yArr.append(YANGLE)
 
-    if(ser.inWaiting() > 0):
+def func(n):
+
+    global prev_data
+
+    if( prev_data != n ):
+        while(True):
+            ser.write(2)
+
+            if(ser.inWaiting() > 0):
+                break
+
         dataBytes = ser.readline()
 
-        dataBuffer=dataBytes[:-2].decode()
-        splitBuffer=dataBuffer.split("|")
+        dataBuffer = dataBytes[:-2].decode()
+        splitBuffer = dataBuffer.split("|")
+        printF(splitBuffer, n)
 
-        ComplementaryFilter(splitBuffer)
+        x_graph.set_xdata(np.arange(n+1))
+        x_graph.set_ydata(xArr)
+        x_window.set_xlim(n-50, n)
 
-def drawGraph(number) :
-    getIMUData_process = Process(target = getIMUData)
-    getIMUData_process.start()
+        y_graph.set_xdata(np.arange(n+1))
+        y_graph.set_ydata(yArr)
+        y_window.set_xlim(n-50, n)
 
-    graph_one.set_xdata(np.arange(number))
-    graph_one.set_ydata(XANGLE)
-    graph_window_one.set_xlim(number - 10, number)
+    prev_data = n
+    return x_graph, y_graph
 
-    getIMUData_process.join()
-    return graph_one
+ani = animation.FuncAnimation(fig, func, interval=1, blit=True)
 
-if __name__=='__main__':
-    # Create Main Window & Graph Window
-    main_window = plt.figure();
-    graph_window_one = main_window.add_subplot(1, 1, 1)
-
-    # Set Y Axis Scale
-    graph_window_one.set_ylim(-90, 90)
-
-    graph_one, = graph_window_one.plot([])
-
-    ani = animation.FuncAnimation(main_window, drawGraph, interval=1)
-    plt.show()
+plt.show()
