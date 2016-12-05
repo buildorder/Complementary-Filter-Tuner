@@ -19,11 +19,20 @@ prev_data = -1
 
 #setup figure
 fig = plt.figure()
+
+# Create X Window
 x_window = fig.add_subplot(2,1,2)
-y_window = fig.add_subplot(2,1,1)
+x_window.grid(True)
+x_window.set_xlabel('X Axis')
 x_window.set_ylim(-90, 90)
+
+# Create Y Window
+y_window = fig.add_subplot(2,1,1)
+y_window.grid(True)
+y_window.set_xlabel('Y Axis')
 y_window.set_ylim(-90, 90)
 
+# Plot X, Y graph
 x_graph, = x_window.plot([], [], color=(0,0,1))
 y_graph, = y_window.plot([], [], color=(0,0,1))
 
@@ -37,11 +46,13 @@ def printF(Buffer, n):
     accX = math.atan2(int(Buffer[0]), int(Buffer[2])) * 180 / math.pi
     accY = math.atan2(int(Buffer[1]), int(Buffer[2])) * 180 / math.pi
 
-    XANGLE = ( 0.88 * (XANGLE + ( gyroX * 0.001) ) + (0.12 * accX ))
-    YANGLE = ( 0.88 * (YANGLE + ( gyroY * 0.001) ) + (0.12 * accY ))
+    XANGLE = ( float(Buffer[5]) * (XANGLE + ( gyroX * 0.001) ) + ( (1.0 - float(Buffer[5])) * accX ))
+    YANGLE = ( float(Buffer[5]) * (YANGLE + ( gyroY * 0.001) ) + ( (1.0 - float(Buffer[5])) * accY ))
 
     xArr.append(XANGLE)
     yArr.append(YANGLE)
+
+    print(Buffer[5])
 
 def func(n):
 
